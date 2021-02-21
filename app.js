@@ -22,21 +22,25 @@ yargs.command({
 });
 
 const printForecast = (location) => {
-    geocode(location, (error, response) => {
+    geocode(location, (error, {latitude, longitude, locationResult} = {}) => {
         if(error){
             return console.log(chalk.red(error));
         }
 
-        forecast(response.latitude, response.longitude, (error, data) =>{
+        if(!latitude){
+            return console.log(chalk.red('Could not find a location matching that search term. Please try another.'))
+        }
+
+        forecast(latitude, longitude, (error, {picture, text}) =>{
             if(error){
                 return console.log(chalk.red(error));
             }
             
-            if(data){
+            if(picture){
                 (async () => {
-                    const body = await got(data.picture).buffer();
-                    console.log("In " + response.locationResult + ':');
-                    console.log(data.text);
+                    const body = await got(picture).buffer();
+                    console.log("In " + locationResult + ':');
+                    console.log(text);
                     console.log(await terminalImage.buffer(body, {width: 15, height: 15}));
                 })();
             }
